@@ -96,3 +96,140 @@ int main() {
 
 // limparBufferEntrada():
 // Função utilitária para limpar o buffer de entrada do teclado (stdin), evitando problemas com leituras consecutivas de scanf e getchar.
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define TAM 5
+
+typedef struct {
+    char nome[50];
+    char cor[20];
+    int tropas;
+} Territorio;
+
+// -------- PROTÓTIPOS ----------
+void inicializar(Territorio mapa[]);
+void exibirMapa(const Territorio mapa[]);
+void atacar(Territorio mapa[], int A, int D);
+int verificarMissao(const Territorio mapa[], int missao);
+int sorteiaMissao();
+
+// -------- FUNÇÃO PRINCIPAL ----------
+int main() {
+    srand(time(NULL));
+    
+    Territorio mapa[TAM];
+    inicializar(mapa);
+
+    int missao = sorteiaMissao();
+
+    printf("Missão recebida: ");
+    if (missao == 1) printf("Destruir o exército Verde.\n");
+    else printf("Conquistar 3 territórios.\n");
+
+    int opcao;
+
+    while (1) {
+        printf("\n=== MENU ===\n");
+        printf("1 - Atacar\n");
+        printf("2 - Verificar Missão\n");
+        printf("0 - Sair\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 0) break;
+
+        if (opcao == 1) {
+            exibirMapa(mapa);
+            int A, D;
+            printf("Atacante (1–5): ");
+            scanf("%d", &A);
+            printf("Defensor (1–5): ");
+            scanf("%d", &D);
+            atacar(mapa, A - 1, D - 1);
+        }
+        else if (opcao == 2) {
+            if (verificarMissao(mapa, missao)) {
+                printf("\n🎉 MISSÃO CONCLUÍDA! Você venceu!\n");
+                break;
+            } else {
+                printf("\nMissão ainda não concluída.\n");
+            }
+        }
+    }
+
+    return 0;
+}
+
+// -------- IMPLEMENTAÇÕES ----------
+
+void inicializar(Territorio mapa[]) {
+    const char *nomes[TAM] = {
+        "Montanha", "Deserto", "Floresta", "Planície", "Costa"
+    };
+
+    const char *cores[TAM] = {
+        "Azul", "Vermelho", "Verde", "Amarelo", "Roxo"
+    };
+
+    for (int i = 0; i < TAM; i++) {
+        strcpy(mapa[i].nome, nomes[i]);
+        strcpy(mapa[i].cor, cores[i]);
+        mapa[i].tropas = rand() % 5 + 1;
+    }
+}
+
+void exibirMapa(const Territorio mapa[]) {
+    printf("\n=== MAPA ===\n");
+    for (int i = 0; i < TAM; i++) {
+        printf("[%d] %-10s | %-10s | Tropas: %d\n",
+               i + 1, mapa[i].nome, mapa[i].cor, mapa[i].tropas);
+    }
+}
+
+void atacar(Territorio mapa[], int A, int D) {
+    int dadoA = rand() % 6 + 1;
+    int dadoD = rand() % 6 + 1;
+
+    printf("\nDados: Atacante %d | Defensor %d\n", dadoA, dadoD);
+
+    if (dadoA >= dadoD) {
+        mapa[D].tropas--;
+        printf("Atacante venceu! Tropas do defensor: %d\n", mapa[D].tropas);
+
+        if (mapa[D].tropas <= 0) {
+            strcpy(mapa[D].cor, mapa[A].cor);
+            mapa[D].tropas = 1;
+            printf("Território %s conquistado!\n", mapa[D].nome);
+        }
+    } else {
+        printf("Defensor resistiu!\n");
+    }
+}
+
+int verificarMissao(const Territorio mapa[], int missao) {
+    if (missao == 1) {
+        for (int i = 0; i < TAM; i++)
+            if (strcmp(mapa[i].cor, "Verde") == 0)
+                return 0;
+        return 1;
+    }
+
+    if (missao == 2) {
+        int conta = 0;
+        for (int i = 0; i < TAM; i++)
+            if (strcmp(mapa[i].cor, "Azul") == 0)
+                conta++;
+        return conta >= 3;
+    }
+
+    return 0;
+}
+
+int sorteiaMissao() {
+    return rand() % 2 + 1;
+}
